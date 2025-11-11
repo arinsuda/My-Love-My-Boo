@@ -1,221 +1,1345 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+  import { ref, onMounted, computed } from "vue"
+  import { useRouter } from "vue-router"
 
-const router = useRouter();
-const moments = ref([]);
-const loading = ref(true);
+  const router = useRouter()
+  const moments = ref([])
+  const loading = ref(true)
+  const viewMode = ref("grid")
+  const hoveredMoment = ref(null)
 
-const loadMoments = async () => {
-  try {
-    const res = await fetch("/api/moments");
-    if (!res.ok) throw new Error("load fail");
-    moments.value = await res.json();
-  } catch {
-    moments.value = [
-      {
-        id: 1,
-        date: "2019-08-10",
-        title: "วันแรกที่เราเจอกัน",
-        description: "ตอนนั้นยังไม่รู้เลยว่าจะกลายเป็นคนสำคัญขนาดนี้",
-        images: ["/images/first-day-1.jpg"],
-        tag: "เริ่มต้น",
-      },
-      {
-        id: 2,
-        date: "2020-02-14",
-        title: "วาเลนไทน์ครั้งแรก",
-        description: "ช็อกโกแลตวันนั้น กับรอยยิ้มของคุณ ยังจำได้อยู่เลย",
-        images: ["/images/valentine-2020.jpg"],
-        tag: "เดต",
-      },
-    ];
-  } finally {
-    loading.value = false;
+  const loadMoments = async () => {
+    try {
+      const res = await fetch("/api/moments")
+      if (!res.ok) throw new Error("load fail")
+      moments.value = await res.json()
+    } catch {
+      moments.value = [
+        {
+          id: 1,
+          date: "2019-08-10",
+          title: "วันแรกที่เราเจอกัน",
+          description: "ตอนนั้นยังไม่รู้เลยว่าจะกลายเป็นคนสำคัญขนาดนี้",
+          images: ["/public/first-meeting.jpg"],
+          tag: "เริ่มต้น",
+        },
+        {
+          id: 2,
+          date: "2020-02-14",
+          title: "วาเลนไทน์ครั้งแรก",
+          description: "ช็อกโกแลตวันนั้น กับรอยยิ้มของคุณ ยังจำได้อยู่เลย",
+          images: ["/public/valentine-2020.jpg"],
+          tag: "เดต",
+        },
+      ]
+    } finally {
+      loading.value = false
+    }
   }
-};
 
-onMounted(loadMoments);
+  onMounted(loadMoments)
 
-const goToLetter = () => {
-  router.push("/letter");
-};
+  const goToLetter = () => {
+    router.push("/letter")
+  }
+
+  const setViewMode = mode => {
+    viewMode.value = mode
+  }
+
+  const formatDate = dateStr => {
+    const [year, month, day] = dateStr.split("-")
+    const months = [
+      "ม.ค.",
+      "ก.พ.",
+      "มี.ค.",
+      "เม.ย.",
+      "พ.ค.",
+      "มิ.ย.",
+      "ก.ค.",
+      "ส.ค.",
+      "ก.ย.",
+      "ต.ค.",
+      "พ.ย.",
+      "ธ.ค.",
+    ]
+    return `${parseInt(day)} ${months[parseInt(month) - 1]} ${
+      parseInt(year) + 543
+    }`
+  }
 </script>
 
 <template>
-  <div class="min-h-screen relative overflow-hidden">
-    <!-- Background -->
-    <div
-      class="absolute inset-0 bg-gradient-to-b from-purple-950 via-black to-purple-900"
-    >
+  <div class="moments-page">
+    <!-- Enhanced gradient mesh background -->
+    <div class="bg-base"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-gradient bg-gradient-3"></div>
+    <div class="bg-noise"></div>
+
+    <!-- Ambient particles -->
+    <div class="particles-layer">
       <div
-        class="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"
-      ></div>
-      <div
-        class="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl"
+        v-for="i in 20"
+        :key="i"
+        class="particle"
+        :style="{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          animationDelay: `${Math.random() * 8}s`,
+          animationDuration: `${8 + Math.random() * 12}s`,
+        }"
       ></div>
     </div>
 
+    <!-- Floating elements -->
+    <div class="floating-elements">
+      <div class="heart-float" style="left: 8%; animation-delay: 0s">💜</div>
+      <div class="heart-float" style="left: 50%; animation-delay: 3s">💗</div>
+      <div class="heart-float" style="left: 85%; animation-delay: 6s">✨</div>
+      <div class="heart-float" style="left: 30%; animation-delay: 9s">💕</div>
+    </div>
+
     <!-- Content -->
-    <div class="relative z-10 px-6 py-12">
-      <!-- Header -->
-      <div class="text-center mb-12">
-        <div class="inline-block mb-4">
-          <n-icon size="64" color="#a78bfa">
-            <svg viewBox="0 0 24 24">
-              <path
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </n-icon>
-        </div>
-        <h2
-          class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4"
-        >
-          ความทรงจำของเรา
-        </h2>
-        <n-text class="text-purple-300 text-lg">
-          ทุกช่วงเวลาที่เราสร้างขึ้นมาด้วยกัน
-        </n-text>
-      </div>
+    <div class="content-wrapper">
+      <div class="content-container">
+        <!-- Header section with enhanced design -->
+        <div class="header-section">
+          <div class="header-content">
+            <!-- Icon with enhanced effects -->
+            <div class="icon-container">
+              <div class="icon-ring icon-ring-1"></div>
+              <div class="icon-ring icon-ring-2"></div>
+              <div class="icon-core">
+                <svg viewBox="0 0 24 24" class="icon-svg">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  >
+                    <animate
+                      attributeName="stroke-dasharray"
+                      values="0 56.5; 56.5 0"
+                      dur="1.2s"
+                      fill="freeze"
+                    />
+                  </circle>
+                  <path
+                    d="M12 7v5l3 3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
 
-      <!-- Loading -->
-      <div v-if="loading" class="flex justify-center items-center py-20">
-        <n-spin size="large" />
-      </div>
+            <h1 class="main-title">
+              <span class="title-word">อัลบั้ม</span>
+              <span class="title-word">ความทรงจำ</span>
+              <span class="title-word">ของเรา</span>
+            </h1>
 
-      <!-- Moments Grid -->
-      <div v-else class="max-w-6xl mx-auto mb-12">
-        <n-grid :cols="1" :md-cols="2" :x-gap="24" :y-gap="24">
-          <n-gi v-for="m in moments" :key="m.id">
-            <n-card
-              hoverable
-              class="moment-card group"
-              content-style="padding: 0;"
-            >
-              <!-- Image -->
-              <div
-                v-if="m.images && m.images.length"
-                class="relative h-64 overflow-hidden"
+            <p class="subtitle">
+              เก็บทุกช่วงเวลาพิเศษไว้เหมือนอัลบั้มรูปส่วนตัวของเราสองคน
+            </p>
+
+            <div v-if="!loading" class="meta-info">
+              <span class="meta-item">
+                <svg
+                  class="meta-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <rect
+                    x="3"
+                    y="4"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    ry="2"
+                    stroke-width="2"
+                  />
+                  <line
+                    x1="16"
+                    y1="2"
+                    x2="16"
+                    y2="6"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <line
+                    x1="8"
+                    y1="2"
+                    x2="8"
+                    y2="6"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <line x1="3" y1="10" x2="21" y2="10" stroke-width="2" />
+                </svg>
+                {{ moments.length }} ช่วงเวลา
+              </span>
+              <span class="meta-divider">·</span>
+              <span class="meta-item">
+                <svg
+                  class="meta-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path
+                    d="M12 20l9-11H3z"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                {{ viewMode === "grid" ? "Grid View" : "List View" }}
+              </span>
+            </div>
+          </div>
+
+          <!-- View toggle with refined design -->
+          <div class="view-controls">
+            <div class="control-label">VIEW MODE</div>
+            <div class="toggle-group">
+              <button
+                class="toggle-btn"
+                :class="{ active: viewMode === 'grid' }"
+                @click="setViewMode('grid')"
               >
-                <img
-                  :src="m.images[0]"
-                  alt="moment image"
-                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div
-                  class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
-                ></div>
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                </svg>
+                <span>Grid</span>
+              </button>
+              <button
+                class="toggle-btn"
+                :class="{ active: viewMode === 'list' }"
+                @click="setViewMode('list')"
+              >
+                <svg viewBox="0 0 24 24">
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <line x1="4" y1="12" x2="20" y2="12" />
+                  <line x1="4" y1="18" x2="20" y2="18" />
+                </svg>
+                <span>List</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
-                <!-- Tag -->
-                <div class="absolute top-4 right-4">
-                  <n-tag type="primary" round>
-                    {{ m.tag }}
-                  </n-tag>
+        <!-- Loading state -->
+        <div v-if="loading" class="loading-container">
+          <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+          </div>
+          <p class="loading-text">กำลังเปิดอัลบั้มรูปของเรา...</p>
+        </div>
+
+        <!-- Grid View -->
+        <div v-else-if="viewMode === 'grid'" class="grid-view">
+          <div
+            v-for="(m, idx) in moments"
+            :key="m.id"
+            class="grid-card"
+            :style="{ animationDelay: `${idx * 0.1}s` }"
+            @mouseenter="hoveredMoment = m.id"
+            @mouseleave="hoveredMoment = null"
+          >
+            <div class="card-shimmer"></div>
+            <div class="card-image-wrapper">
+              <img :src="m.images?.[0]" :alt="m.title" class="card-image" />
+              <div class="image-overlay"></div>
+            </div>
+            <div class="card-content">
+              <div class="card-tag" v-if="m.tag">{{ m.tag }}</div>
+              <h3 class="card-title">{{ m.title }}</h3>
+              <div class="card-date">
+                <svg viewBox="0 0 24 24" class="date-icon">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <path
+                    d="M12 6v6l4 2"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                {{ formatDate(m.date) }}
+              </div>
+            </div>
+            <div class="card-glow"></div>
+          </div>
+        </div>
+
+        <!-- List View -->
+        <div v-else class="list-view">
+          <div
+            v-for="(m, idx) in moments"
+            :key="m.id"
+            class="list-card"
+            :style="{ animationDelay: `${idx * 0.1}s` }"
+            @mouseenter="hoveredMoment = m.id"
+            @mouseleave="hoveredMoment = null"
+          >
+            <div class="list-shimmer"></div>
+            <div class="list-image-wrapper">
+              <img :src="m.images?.[0]" :alt="m.title" class="list-image" />
+              <div class="list-image-overlay"></div>
+            </div>
+            <div class="list-content">
+              <div class="list-header">
+                <div class="list-tag" v-if="m.tag">{{ m.tag }}</div>
+                <div class="list-date">
+                  <svg viewBox="0 0 24 24" class="date-icon">
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <line
+                      x1="16"
+                      y1="2"
+                      x2="16"
+                      y2="6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <line
+                      x1="8"
+                      y1="2"
+                      x2="8"
+                      y2="6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                  </svg>
+                  {{ formatDate(m.date) }}
                 </div>
               </div>
+              <h3 class="list-title">{{ m.title }}</h3>
+              <p class="list-description">{{ m.description }}</p>
+            </div>
+            <div class="list-glow"></div>
+          </div>
+        </div>
 
-              <!-- Content -->
-              <div class="p-6 space-y-3">
-                <n-space align="center" :size="8">
-                  <n-icon size="16" color="#d8b4fe">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </n-icon>
-                  <n-text depth="3">{{ m.date }}</n-text>
-                </n-space>
-
-                <h3
-                  class="text-2xl font-bold text-white group-hover:text-purple-300 transition-colors"
-                >
-                  {{ m.title }}
-                </h3>
-
-                <n-text class="text-purple-200 leading-relaxed">
-                  {{ m.description }}
-                </n-text>
-              </div>
-            </n-card>
-          </n-gi>
-        </n-grid>
-      </div>
-
-      <!-- Navigation Button -->
-      <div class="flex justify-center">
-        <n-button
-          type="primary"
-          size="large"
-          @click="goToLetter"
-          class="custom-button"
-          style="height: 56px; font-size: 1.125rem; padding: 0 2rem"
-        >
-          <template #icon>
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-          </template>
-          อ่านจดหมายจากใจ
-        </n-button>
+        <!-- CTA Button -->
+        <div class="cta-section">
+          <button class="cta-button" @click="goToLetter">
+            <span class="cta-glow"></span>
+            <span class="cta-content">
+              <svg class="cta-icon" viewBox="0 0 24 24">
+                <path
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              <span>อ่านจดหมายจากใจ</span>
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.custom-button {
-  background: linear-gradient(to right, #9333ea, #ec4899);
-  border: none;
-  transition: all 0.3s ease;
-}
+  * {
+    box-sizing: border-box;
+  }
 
-.custom-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.5);
-}
+  .moments-page {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sukhumvit Set",
+      sans-serif;
+  }
 
-:deep(.moment-card) {
-  background: linear-gradient(
-    to bottom right,
-    rgba(88, 28, 135, 0.4),
-    rgba(0, 0, 0, 0.4)
-  );
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  backdrop-filter: blur(8px);
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
+  /* === Enhanced Background === */
+  .bg-base {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(
+        circle at 20% 20%,
+        rgba(139, 92, 246, 0.15) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 80%,
+        rgba(236, 72, 153, 0.12) 0%,
+        transparent 50%
+      ),
+      linear-gradient(
+        135deg,
+        #0a0118 0%,
+        #1a0b2e 25%,
+        #2d1b4e 50%,
+        #1a0b2e 75%,
+        #0a0118 100%
+      );
+    z-index: 0;
+  }
 
-:deep(.moment-card:hover) {
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.2);
-  transform: scale(1.02);
-}
+  .bg-gradient {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    mix-blend-mode: screen;
+    z-index: 1;
+  }
 
-:deep(.n-tag) {
-  background-color: rgba(147, 51, 234, 0.8);
-  backdrop-filter: blur(4px);
-}
+  .bg-gradient-1 {
+    width: 600px;
+    height: 600px;
+    top: -200px;
+    left: -200px;
+    background: radial-gradient(
+      circle,
+      rgba(167, 139, 250, 0.6),
+      transparent 70%
+    );
+    animation: float-1 20s ease-in-out infinite;
+  }
+
+  .bg-gradient-2 {
+    width: 500px;
+    height: 500px;
+    bottom: -150px;
+    right: -150px;
+    background: radial-gradient(
+      circle,
+      rgba(244, 114, 182, 0.5),
+      transparent 70%
+    );
+    animation: float-2 25s ease-in-out infinite;
+  }
+
+  .bg-gradient-3 {
+    width: 400px;
+    height: 400px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      rgba(59, 130, 246, 0.3),
+      transparent 70%
+    );
+    animation: float-3 30s ease-in-out infinite;
+  }
+
+  .bg-noise {
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 2;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* === Particles === */
+  .particles-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8), transparent);
+    border-radius: 50%;
+    animation: particle-drift 15s linear infinite;
+  }
+
+  /* === Floating Hearts === */
+  .floating-elements {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+    overflow: hidden;
+  }
+
+  .heart-float {
+    position: absolute;
+    bottom: -50px;
+    font-size: 1.5rem;
+    opacity: 0;
+    animation: float-up 15s ease-in infinite;
+  }
+
+  /* === Content === */
+  .content-wrapper {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 60px 24px;
+  }
+
+  .content-container {
+    width: 100%;
+    max-width: 1200px;
+  }
+
+  /* === Header === */
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 48px;
+    margin-bottom: 64px;
+    animation: fade-in-up 0.8s ease-out;
+  }
+
+  .header-content {
+    flex: 1;
+  }
+
+  .icon-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid;
+    animation: ring-rotate 20s linear infinite;
+  }
+
+  .icon-ring-1 {
+    inset: 0;
+    border-color: rgba(167, 139, 250, 0.3);
+    border-style: dashed;
+  }
+
+  .icon-ring-2 {
+    inset: -12px;
+    border-color: rgba(244, 114, 182, 0.2);
+    border-style: dotted;
+    animation-direction: reverse;
+    animation-duration: 15s;
+  }
+
+  .icon-core {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(
+      circle,
+      rgba(139, 92, 246, 0.4),
+      rgba(79, 70, 229, 0.2)
+    );
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(167, 139, 250, 0.6),
+      inset 0 0 20px rgba(167, 139, 250, 0.3);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .icon-svg {
+    width: 48px;
+    height: 48px;
+    stroke: #e9d5ff;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .main-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-align: center;
+    margin: 0 0 16px;
+    line-height: 1.1;
+  }
+
+  .title-word {
+    display: inline-block;
+    background: linear-gradient(135deg, #ffffff 0%, #e9d5ff 50%, #f9a8d4 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-shift 8s ease infinite;
+    text-shadow: 0 0 80px rgba(244, 114, 182, 0.5);
+    margin: 0 8px;
+  }
+
+  .subtitle {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+    margin: 0 0 24px;
+    line-height: 1.6;
+  }
+
+  .meta-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .meta-icon {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+  }
+
+  .meta-divider {
+    opacity: 0.5;
+  }
+
+  /* === View Controls === */
+  .view-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+  }
+
+  .control-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .toggle-group {
+    display: flex;
+    gap: 8px;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  .toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .toggle-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .toggle-btn.active {
+    background: linear-gradient(
+      135deg,
+      rgba(139, 92, 246, 0.4),
+      rgba(236, 72, 153, 0.4)
+    );
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  }
+
+  .toggle-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* === Loading === */
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 0;
+  }
+
+  .loading-spinner {
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+
+  .spinner-ring {
+    position: absolute;
+    inset: 0;
+    border: 3px solid transparent;
+    border-top-color: #a78bfa;
+    border-radius: 50%;
+    animation: spin 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  }
+
+  .spinner-ring:nth-child(2) {
+    border-top-color: #ec4899;
+    animation-delay: -0.3s;
+  }
+
+  .spinner-ring:nth-child(3) {
+    border-top-color: #3b82f6;
+    animation-delay: -0.6s;
+  }
+
+  .loading-text {
+    margin-top: 24px;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    animation: pulse-text 2s ease-in-out infinite;
+  }
+
+  /* === Grid View === */
+  .grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 64px;
+  }
+
+  .grid-card {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 24px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fade-in-up 0.6s ease-out forwards;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .grid-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: rgba(167, 139, 250, 0.4);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+      0 0 40px rgba(167, 139, 250, 0.3);
+  }
+
+  .card-shimmer {
+    position: absolute;
+    inset: -100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  .grid-card:hover .card-shimmer {
+    transform: translateX(100%);
+  }
+
+  .card-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .grid-card:hover .card-image {
+    transform: scale(1.1);
+  }
+
+  .image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(0, 0, 0, 0.5) 40%,
+      transparent 100%
+    );
+  }
+
+  .card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px;
+    z-index: 2;
+  }
+
+  .card-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(139, 92, 246, 0.6);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    backdrop-filter: blur(10px);
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+    line-height: 1.3;
+    color: #ffffff;
+  }
+
+  .card-date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .date-icon {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+  }
+
+  .card-glow {
+    position: absolute;
+    bottom: -50%;
+    left: 50%;
+    width: 80%;
+    height: 80%;
+    background: radial-gradient(
+      circle,
+      rgba(167, 139, 250, 0.4),
+      transparent 70%
+    );
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+
+  .grid-card:hover .card-glow {
+    opacity: 1;
+  }
+
+  /* === List View === */
+  .list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 64px;
+  }
+
+  .list-card {
+    position: relative;
+    display: flex;
+    gap: 24px;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fade-in-up 0.6s ease-out forwards;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .list-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(244, 114, 182, 0.4);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+      0 0 40px rgba(244, 114, 182, 0.3);
+  }
+
+  .list-shimmer {
+    position: absolute;
+    inset: -100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  .list-card:hover .list-shimmer {
+    transform: translateX(100%);
+  }
+
+  .list-image-wrapper {
+    position: relative;
+    width: 200px;
+    min-width: 200px;
+    aspect-ratio: 4/3;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .list-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .list-card:hover .list-image {
+    transform: scale(1.08);
+  }
+
+  .list-image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0.6) 0%,
+      transparent 100%
+    );
+  }
+
+  .list-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .list-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .list-tag {
+    padding: 6px 14px;
+    background: rgba(236, 72, 153, 0.6);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+  }
+
+  .list-date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .list-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.3;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+  }
+
+  .list-description {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0;
+  }
+
+  .list-glow {
+    position: absolute;
+    bottom: -50%;
+    left: 50%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(
+      circle,
+      rgba(244, 114, 182, 0.4),
+      transparent 70%
+    );
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+
+  .list-card:hover .list-glow {
+    opacity: 1;
+  }
+
+  /* === CTA Button === */
+  .cta-section {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+  }
+
+  .cta-button {
+    position: relative;
+    padding: 18px 48px;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899, #f59e0b);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 9999px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.4),
+      0 0 60px rgba(236, 72, 153, 0.3);
+    animation: gradient-shift 6s ease infinite;
+  }
+
+  .cta-button:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 30px 60px rgba(139, 92, 246, 0.6),
+      0 0 80px rgba(236, 72, 153, 0.5);
+  }
+
+  .cta-button:active {
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  .cta-glow {
+    position: absolute;
+    inset: -20px;
+    background: radial-gradient(
+      circle,
+      rgba(236, 72, 153, 0.5),
+      transparent 70%
+    );
+    opacity: 0.6;
+    filter: blur(20px);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .cta-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1;
+  }
+
+  .cta-icon {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    animation: icon-bounce 2s ease-in-out infinite;
+  }
+
+  /* === Animations === */
+  @keyframes float-1 {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(100px, -100px) scale(1.1);
+    }
+  }
+
+  @keyframes float-2 {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(-120px, 80px) scale(1.15);
+    }
+  }
+
+  @keyframes float-3 {
+    0%,
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      transform: translate(-40%, -60%) scale(1.2);
+    }
+  }
+
+  @keyframes particle-drift {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(100px, -800px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes float-up {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-in-up {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes ring-rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes gradient-shift {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes pulse-text {
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes icon-bounce {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(6px);
+    }
+  }
+
+  /* === Responsive === */
+  @media (max-width: 1024px) {
+    .header-section {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .view-controls {
+      align-items: center;
+    }
+
+    .grid-view {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .content-wrapper {
+      padding: 40px 16px;
+    }
+
+    .main-title {
+      font-size: 2.5rem;
+    }
+
+    .title-word {
+      margin: 0 4px;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+    }
+
+    .grid-view {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+    }
+
+    .list-card {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .list-image-wrapper {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .list-title {
+      font-size: 1.25rem;
+    }
+
+    .list-description {
+      font-size: 0.9375rem;
+    }
+
+    .cta-button {
+      padding: 16px 36px;
+      font-size: 1rem;
+    }
+
+    .icon-container {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 24px;
+    }
+
+    .icon-core {
+      width: 70px;
+      height: 70px;
+    }
+
+    .icon-svg {
+      width: 40px;
+      height: 40px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .grid-view {
+      grid-template-columns: 1fr;
+    }
+
+    .main-title {
+      font-size: 2rem;
+    }
+
+    .header-section {
+      margin-bottom: 48px;
+    }
+
+    .toggle-group {
+      width: 100%;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .card-content {
+      padding: 16px;
+    }
+
+    .card-title {
+      font-size: 1.125rem;
+    }
+  }
 </style>
