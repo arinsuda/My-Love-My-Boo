@@ -1,11 +1,12 @@
 <script setup>
   import { useRouter } from "vue-router"
-  import { useMotion } from "@vueuse/motion"
   import AnniversaryUnlockForm from "@/components/AnniversaryUnlockForm.vue"
 
   const router = useRouter()
 
   const handleUnlocked = () => {
+    localStorage.setItem("anniversaryVerified", "true")
+
     router.push("/welcome")
   }
 

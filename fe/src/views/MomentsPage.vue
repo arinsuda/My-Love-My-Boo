@@ -8,30 +8,23 @@
   const viewMode = ref("grid")
   const hoveredMoment = ref(null)
 
+  // 👇 สำหรับ media viewer
+  const activeMoment = ref(null) // moment ที่กำลังดู
+  const activeIndex = ref(0) // index ของรูป/วิดีโอใน moment นั้น
+
+  const API_BASE = import.meta.env.VITE_API_BASE_URL
+
   const loadMoments = async () => {
+    loading.value = true
     try {
-      const res = await fetch("/api/moments")
+      const res = await fetch(`${API_BASE}/api/moments`)
       if (!res.ok) throw new Error("load fail")
-      moments.value = await res.json()
-    } catch {
-      moments.value = [
-        {
-          id: 1,
-          date: "2019-08-10",
-          title: "วันแรกที่เราเจอกัน",
-          description: "ตอนนั้นยังไม่รู้เลยว่าจะกลายเป็นคนสำคัญขนาดนี้",
-          images: ["/public/first-meeting.jpg"],
-          tag: "เริ่มต้น",
-        },
-        {
-          id: 2,
-          date: "2020-02-14",
-          title: "วาเลนไทน์ครั้งแรก",
-          description: "ช็อกโกแลตวันนั้น กับรอยยิ้มของคุณ ยังจำได้อยู่เลย",
-          images: ["/public/valentine-2020.jpg"],
-          tag: "เดต",
-        },
-      ]
+
+      const data = await res.json()
+      moments.value = Array.isArray(data) ? data : []
+    } catch (err) {
+      console.error("โหลด moments ไม่สำเร็จ:", err)
+      moments.value = []
     } finally {
       loading.value = false
     }
@@ -66,6 +59,39 @@
     return `${parseInt(day)} ${months[parseInt(month) - 1]} ${
       parseInt(year) + 543
     }`
+  }
+
+  // ---------- media viewer helpers ----------
+  const currentMediaUrl = computed(() => {
+    if (!activeMoment.value) return ""
+    return activeMoment.value.images?.[activeIndex.value] || ""
+  })
+
+  const isVideo = url => !!url && /\.(mp4|webm|ogg)$/i.test(url) // ถ้าไฟล์ลงท้ายแบบนี้ให้ถือว่าเป็นวิดีโอ
+
+  const openViewer = (moment, index = 0) => {
+    if (!moment?.images?.length) return
+    activeMoment.value = moment
+    activeIndex.value = index
+  }
+
+  const closeViewer = () => {
+    activeMoment.value = null
+    activeIndex.value = 0
+  }
+
+  const nextMedia = () => {
+    if (!activeMoment.value) return
+    const total = activeMoment.value.images?.length || 0
+    if (!total) return
+    activeIndex.value = (activeIndex.value + 1) % total
+  }
+
+  const prevMedia = () => {
+    if (!activeMoment.value) return
+    const total = activeMoment.value.images?.length || 0
+    if (!total) return
+    activeIndex.value = (activeIndex.value - 1 + total) % total
   }
 </script>
 
@@ -259,6 +285,7 @@
             :style="{ animationDelay: `${idx * 0.1}s` }"
             @mouseenter="hoveredMoment = m.id"
             @mouseleave="hoveredMoment = null"
+            @click="openViewer(m, 0)"
           >
             <div class="card-shimmer"></div>
             <div class="card-image-wrapper">
@@ -302,6 +329,7 @@
             :style="{ animationDelay: `${idx * 0.1}s` }"
             @mouseenter="hoveredMoment = m.id"
             @mouseleave="hoveredMoment = null"
+            @click="openViewer(m, 0)"
           >
             <div class="list-shimmer"></div>
             <div class="list-image-wrapper">
@@ -360,9 +388,68 @@
                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                 />
               </svg>
-              <span>อ่านจดหมายจากใจ</span>
+              <span>อ่านจดหมาย</span>
             </span>
           </button>
+        </div>
+
+        <!-- Media Viewer Modal -->
+        <div
+          v-if="activeMoment"
+          class="media-viewer-overlay"
+          @click.self="closeViewer"
+        >
+          <div class="media-viewer-content">
+            <button class="media-viewer-close" @click="closeViewer">✕</button>
+
+            <div class="media-viewer-body">
+              <button
+                class="nav-btn nav-btn-left"
+                @click.stop="prevMedia"
+                v-if="activeMoment.images?.length > 1"
+              >
+                ‹
+              </button>
+
+              <div class="media-wrapper">
+                <!-- แสดงรูปหรือวิดีโอ ตามชนิด -->
+                <img
+                  v-if="!isVideo(currentMediaUrl)"
+                  :src="currentMediaUrl"
+                  :alt="activeMoment.title"
+                  class="media-image"
+                />
+                <video v-else class="media-video" controls autoplay>
+                  <source :src="currentMediaUrl" />
+                  Your browser does not support the video tag.
+                </video>
+
+                <div class="media-caption">
+                  <div class="media-title">{{ activeMoment.title }}</div>
+                  <div class="media-date">
+                    {{ formatDate(activeMoment.date) }}
+                  </div>
+                  <div class="media-desc" v-if="activeMoment.description">
+                    {{ activeMoment.description }}
+                  </div>
+                  <div
+                    class="media-counter"
+                    v-if="activeMoment.images?.length > 1"
+                  >
+                    {{ activeIndex + 1 }} / {{ activeMoment.images.length }}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                class="nav-btn nav-btn-right"
+                @click.stop="nextMedia"
+                v-if="activeMoment.images?.length > 1"
+              >
+                ›
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1340,6 +1427,152 @@
 
     .card-title {
       font-size: 1.125rem;
+    }
+  }
+
+  /* === Media Viewer Modal === */
+  .media-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(3, 7, 18, 0.85);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .media-viewer-content {
+    position: relative;
+    max-width: 960px;
+    width: 100%;
+    padding: 24px;
+  }
+
+  .media-viewer-close {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    color: #e5e7eb;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+
+  .media-viewer-close:hover {
+    opacity: 1;
+  }
+
+  .media-viewer-body {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .media-wrapper {
+    flex: 1;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 24px;
+    padding: 16px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .media-image,
+  .media-video {
+    max-height: 70vh;
+    width: 100%;
+    border-radius: 16px;
+    object-fit: contain;
+    background: #020617;
+  }
+
+  .media-caption {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.9rem;
+    color: #e5e7eb;
+  }
+
+  .media-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .media-date {
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .media-desc {
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .media-counter {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    align-self: flex-end;
+  }
+
+  .nav-btn {
+    border: none;
+    background: rgba(15, 23, 42, 0.8);
+    color: #e5e7eb;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .nav-btn:hover {
+    background: rgba(37, 99, 235, 0.8);
+    transform: translateY(-1px);
+  }
+
+  .nav-btn-left {
+    margin-right: 4px;
+  }
+
+  .nav-btn-right {
+    margin-left: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .media-viewer-content {
+      padding: 16px;
+    }
+
+    .media-viewer-body {
+      gap: 8px;
+    }
+
+    .media-wrapper {
+      padding: 12px;
+    }
+
+    .media-image,
+    .media-video {
+      max-height: 60vh;
+    }
+
+    .nav-btn {
+      display: none; /* มือถือเลื่อนด้วยนิ้วได้อยู่แล้ว */
     }
   }
 </style>

@@ -87,21 +87,20 @@
 
         <!-- Heading -->
         <h1 class="hero-title">
-          ของขวัญชิ้นนี้ <br />
-          อาจจะไม่ได้พิเศษอะไร แต่ก็ตั้งใจทำให้เธอ  <br />
-          <span class="hero-title-accent">My Babe</span>
+          CONGRATULATIONS!<br />
+          <span class="hero-title-accent">ยินดีด้วยน้า</span>
         </h1>
 
         <!-- Subcopy -->
         <n-space vertical :size="16" class="mb-8">
           <n-text class="hero-text">
             ขอบคุณที่อยู่เคียงข้างกันมาตลอดเลย 💫<br />
-            วันนี้เธอประสบความสำเร็จอีกก้าวหนึ่งในชีวิตแล้วนะ<br />
-            เค้าภูมิใจในตัวเธอมาก ๆ เลย
+            วันนี้เบ้บประสบความสำเร็จอีกก้าวหนึ่งในชีวิตแล้วนะ<br />
+            รินภูมิใจในตัวเบ้บมาก ๆ เลย
           </n-text>
 
           <n-blockquote class="hero-quote">
-            “เวลาที่ดีที่สุด คือเวลาที่เราอยู่ด้วยกัน”
+            “นี่คือของขวัญที่เค้าตั้งใจทำให้เบ้บ ไม่รู้ว่าเบ้บจะดีใจมั้ยนะ”
           </n-blockquote>
         </n-space>
 
