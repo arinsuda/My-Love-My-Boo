@@ -32,6 +32,7 @@ func main() {
 		SupabaseKey:    os.Getenv("SUPABASE_SERVICE_ROLE_KEY"),
 		SupabaseBucket: os.Getenv("SUPABASE_BUCKET"),
 		Port:           os.Getenv("APP_PORT"),
+		AppOrigin:      os.Getenv("APP_ORIGIN"),
 	}
 
 	if cfg.Port == "" {
