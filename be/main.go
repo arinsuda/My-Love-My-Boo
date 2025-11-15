@@ -18,13 +18,14 @@ type Config struct {
 	SupabaseKey    string
 	SupabaseBucket string
 	Port           string
+	AppOrigin      string
 }
 
 var cfg Config
 
 func main() {
 	// โหลด .env
-	_ = godotenv.Load(".env")
+	_ = godotenv.Load(".env", ".env.production")
 
 	cfg = Config{
 		SupabaseURL:    os.Getenv("SUPABASE_URL"),
@@ -34,9 +35,16 @@ func main() {
 	}
 
 	if cfg.Port == "" {
+		cfg.Port = os.Getenv("PORT")
+	}
+	if cfg.Port == "" {
 		cfg.Port = "8080"
 	}
 
+	if cfg.AppOrigin == "" {
+		// default ตอน dev
+		cfg.AppOrigin = "http://localhost:5173"
+	}
 	if cfg.SupabaseURL == "" || cfg.SupabaseKey == "" || cfg.SupabaseBucket == "" {
 		log.Fatal("missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SUPABASE_BUCKET in .env")
 	}
@@ -187,7 +195,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		w.Header().Set("Access-Control-Allow-Origin", cfg.AppOrigin)
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
 
