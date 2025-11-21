@@ -36,6 +36,10 @@
     router.push("/letter")
   }
 
+  const goToWelcome = () => {
+    router.push("/welcome")
+  }
+
   const setViewMode = mode => {
     viewMode.value = mode
   }
@@ -97,6 +101,17 @@
 
 <template>
   <div class="moments-page">
+    <button class="top-back-button" @click="goToWelcome">
+      <span class="top-back-glow"></span>
+      <span class="top-back-content">
+        <svg class="top-back-icon" viewBox="0 0 24 24">
+          <path d="M19 12H5" />
+          <path d="M12 19l-7-7 7-7" />
+        </svg>
+        <span class="top-back-text">กลับ</span>
+      </span>
+    </button>
+
     <!-- Enhanced gradient mesh background -->
     <div class="bg-base"></div>
     <div class="bg-gradient bg-gradient-1"></div>
@@ -235,7 +250,6 @@
 
           <!-- View toggle with refined design -->
           <div class="view-controls">
-            <div class="control-label">VIEW MODE</div>
             <div class="toggle-group">
               <button
                 class="toggle-btn"
@@ -289,9 +303,49 @@
           >
             <div class="card-shimmer"></div>
             <div class="card-image-wrapper">
-              <img :src="m.images?.[0]" :alt="m.title" class="card-image" />
-              <div class="image-overlay"></div>
+              <!-- ถ้ามีรูปเดียว -->
+              <template v-if="(m.images?.length || 0) <= 1">
+                <img
+                  :src="m.images?.[0]"
+                  :alt="m.title"
+                  class="card-image single"
+                />
+                <div class="image-overlay"></div>
+              </template>
+
+              <!-- ถ้ามีมากกว่า 1 รูป -->
+              <template v-else>
+                <div class="dual-images">
+                  <!-- รูปซ้าย (รูปแรก) -->
+                  <div class="dual-left">
+                    <img
+                      :src="m.images?.[0]"
+                      :alt="m.title"
+                      class="card-image"
+                    />
+                  </div>
+
+                  <!-- รูปขวา (รูปที่ 2 + overlay + count) -->
+                  <div class="dual-right">
+                    <img
+                      :src="m.images?.[1]"
+                      :alt="m.title"
+                      class="card-image"
+                    />
+                    <div class="dual-overlay"></div>
+
+                    <!-- แสดงจำนวนรูปที่เหลือ (total - 2) -->
+                    <div v-if="(m.images?.length || 0) > 2" class="dual-count">
+                      +{{ (m.images?.length || 0) - 2 }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- overlay ด้านล่างเพื่อให้อ่าน title ได้ -->
+                <div class="image-overlay"></div>
+              </template>
             </div>
+
             <div class="card-content">
               <div class="card-tag" v-if="m.tag">{{ m.tag }}</div>
               <h3 class="card-title">{{ m.title }}</h3>
@@ -602,18 +656,20 @@
     max-width: 1200px;
   }
 
-  /* === Header === */
   .header-section {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 48px;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
     margin-bottom: 64px;
     animation: fade-in-up 0.8s ease-out;
   }
 
   .header-content {
-    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .icon-container {
@@ -735,13 +791,6 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 12px;
-  }
-
-  .control-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.15em;
-    color: rgba(255, 255, 255, 0.5);
   }
 
   .toggle-group {
@@ -1574,5 +1623,163 @@
     .nav-btn {
       display: none; /* มือถือเลื่อนด้วยนิ้วได้อยู่แล้ว */
     }
+  }
+
+  .top-back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 40;
+    border: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    border-radius: 9999px;
+    color: #fff;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45),
+      0 0 30px rgba(167, 139, 250, 0.25);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .top-back-button:hover {
+    transform: translateY(-2px) scale(1.05);
+    border-color: rgba(167, 139, 250, 0.5);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6),
+      0 0 40px rgba(244, 114, 182, 0.35);
+  }
+
+  .top-back-button:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .top-back-glow {
+    position: absolute;
+    inset: -12px;
+    background: radial-gradient(
+      circle,
+      rgba(139, 92, 246, 0.55),
+      transparent 70%
+    );
+    opacity: 0.6;
+    filter: blur(14px);
+    animation: pulse-glow 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .top-back-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1;
+  }
+
+  .top-back-icon {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    animation: arrow-bounce-left 2s ease-in-out infinite;
+  }
+
+  .top-back-text {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    opacity: 0.95;
+  }
+
+  /* เล็กลงบนมือถือ */
+  @media (max-width: 768px) {
+    .top-back-button {
+      top: 14px;
+      left: 14px;
+      padding: 8px 12px;
+    }
+    .top-back-text {
+      font-size: 0.85rem;
+    }
+    .top-back-icon {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  @keyframes arrow-bounce-left {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-4px);
+    }
+  }
+
+  .dual-images {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr; /* ซ้ายใหญ่ ขวาเล็ก */
+    width: 100%;
+    height: 100%;
+    gap: 6px;
+  }
+
+  .dual-left,
+  .dual-right {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 14px;
+  }
+
+  .dual-right {
+    border-radius: 14px;
+  }
+
+  /* ให้รูป fit เต็มช่อง */
+  .dual-left img,
+  .dual-right img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* overlay ดำจางบนรูปขวา */
+  .dual-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(1px);
+  }
+
+  /* ตัวเลข +N เหมือนตัวอย่าง */
+  .dual-count {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(1.4rem, 2.2vw, 2.3rem);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+    letter-spacing: 0.5px;
+  }
+
+  /* เวลา hover ให้รูปซ้ายขยายเบา ๆ */
+  .grid-card:hover .dual-left img,
+  .list-card:hover .dual-left img {
+    transform: scale(1.08);
+  }
+
+  .grid-card:hover .dual-right img,
+  .list-card:hover .dual-right img {
+    transform: scale(1.05);
   }
 </style>
